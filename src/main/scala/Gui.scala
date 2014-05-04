@@ -7,8 +7,8 @@ import scala.swing.event.EditDone
 
 object Gui {
 
-  class PropertyRow(model: ActorRef, propertyName: String) extends FlowPanel {
-    val valueLabel = new TextField(propertyName)
+  class PropertyRow(model: ActorRef, propertyName: String, propertyValue: String) extends FlowPanel {
+    val valueLabel = new TextField(propertyValue)
     listenTo(valueLabel)
 
     contents += new GridPanel(1, 2) {
@@ -32,7 +32,7 @@ object Gui {
     def setValue(s: String) = valueLabel.text = s
   }
 
-
+/*
   def createRowMap(model: ActorRef): Map[String, PropertyRow] = {
     val names = List("A", "B", "C", "Dog")
 
@@ -42,6 +42,7 @@ object Gui {
 
     rows.toMap
   }
+  */
 }
 
 class Gui(modelActor: ActorRef) extends MainFrame {
@@ -49,13 +50,12 @@ class Gui(modelActor: ActorRef) extends MainFrame {
   import ModelActor._
 
   title = "Config-Akka"
+  resizable = true
 
   // topPanel contains editable rows
 
   val topPanel = new BoxPanel(Orientation.Vertical)
-  val rows = createRowMap(modelActor)
-  
-  rows.foreach(p => topPanel.contents += p._2)
+  var rows = Map[String, PropertyRow]()
 
   // Bottom panel has buttons
 
@@ -70,11 +70,12 @@ class Gui(modelActor: ActorRef) extends MainFrame {
   }
 
   // Main panel
-
-  contents = new BoxPanel(Orientation.Vertical) {
+  val mainPanel = new BoxPanel(Orientation.Vertical) {
     contents += topPanel
     contents += bottomPanel
   }
+
+  contents = mainPanel
 
   listenTo(clearButton)
   listenTo(saveButton)
@@ -90,11 +91,23 @@ class Gui(modelActor: ActorRef) extends MainFrame {
     case ButtonClicked(`stopButton`) =>
       //masterActor ! Stop
       System.exit(0)
-
   }
+
+  def addRow(name: String, value: String) = {
+    val row = new PropertyRow(modelActor, name, value)
+    rows = rows.updated(name, row)
+    topPanel.contents += row
+    //mainPanel.revalidate()
+    pack()
+  }
+
 
   def clear() = rows.foreach(_._2.clearValue())
 
+  def setProperties(properties: Map[String, String]) = {
+    println(s"Gui.setProperties: $properties")
+    properties.foreach(kv => addRow(kv._1, kv._2))
+  }
   def setProperty(name: String, value: String) = {
     rows(name).setValue(value)
     rows(name).repaint()

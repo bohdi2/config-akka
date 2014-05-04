@@ -17,11 +17,13 @@ class Master extends Actor {
     val guiActor1 = context.actorOf(GuiActor.props(modelActor), "GUI1")
     guiActor1 ! GuiActor.Show
 
-    val guiActor2 = context.actorOf(GuiActor.props(modelActor), "GUI2")
-    guiActor2 ! GuiActor.Show
+    //val guiActor2 = context.actorOf(GuiActor.props(modelActor), "GUI2")
+    //guiActor2 ! GuiActor.Show
 
     modelActor ! RegisterGui(guiActor1)
-    modelActor ! RegisterGui(guiActor2)
+    //modelActor ! RegisterGui(guiActor2)
+
+    modelActor ! Load("/tmp/foo.properties")
   }
 
   def receive = {
