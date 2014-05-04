@@ -5,17 +5,10 @@ import scala.swing._
 import scala.swing.event.ButtonClicked
 import scala.swing.event.EditDone
 
-
 object Gui {
 
-  class EbsPanel extends FlowPanel {
-    def connect() = background = Color.WHITE
-
-    def disconnect() = background = Color.GRAY
-  }
-
   class PropertyRow(model: ActorRef, propertyName: String) extends FlowPanel {
-    val valueLabel = new TextField("Property: " + propertyName)
+    val valueLabel = new TextField(propertyName)
     listenTo(valueLabel)
 
     contents += new GridPanel(1, 2) {
@@ -41,7 +34,7 @@ object Gui {
 
 
   def createRowMap(model: ActorRef): Map[String, PropertyRow] = {
-    val names = List("A", "B", "C")
+    val names = List("A", "B", "C", "Dog")
 
     val rows = for {
       name <- names
@@ -55,7 +48,7 @@ class Gui(modelActor: ActorRef) extends MainFrame {
   import Gui._
   import ModelActor._
 
-  title = "Config Akka Example"
+  title = "Config-Akka"
 
   // topPanel contains editable rows
 
@@ -67,10 +60,12 @@ class Gui(modelActor: ActorRef) extends MainFrame {
   // Bottom panel has buttons
 
   val clearButton = new Button("Clear")
+  val saveButton = new Button("Save")
   val stopButton = new Button("Stop")
 
   val bottomPanel = new FlowPanel() {
     contents += clearButton
+    contents += saveButton
     contents += stopButton
   }
 
@@ -82,11 +77,15 @@ class Gui(modelActor: ActorRef) extends MainFrame {
   }
 
   listenTo(clearButton)
+  listenTo(saveButton)
   listenTo(stopButton)
 
   reactions += {
     case ButtonClicked(`clearButton`) =>
       modelActor ! ClearProperties
+
+    case ButtonClicked(`saveButton`) =>
+      modelActor ! Save("/tmp/foo.properties")
 
     case ButtonClicked(`stopButton`) =>
       //masterActor ! Stop

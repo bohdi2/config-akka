@@ -1,10 +1,12 @@
 
 import akka.actor.{ActorRef, Actor, Props}
+import java.io.FileWriter
 import java.util.Properties
 import scala.collection.mutable.ArrayBuffer
 
 object ModelActor {
   //case class Stop()
+  case class Save(filename: String)
   case class ClearProperties()
   case class UpdateProperty(name: String, value: String)
   case class DeregisterGui(guiActor: ActorRef)
@@ -25,9 +27,16 @@ class ModelActor() extends Actor {
       println("ModelActor.register")
       views += guiActor
 
+      // Need to send the gui our data to display
+      //guiActor ! Data(properties.)
+
     case DeregisterGui(guiActor) =>
       println("ModelActor.deregister")
       views -= guiActor
+
+    case Save(filename) =>
+      println("ModelActor.save: " + filename)
+      properties.store(new FileWriter(filename), "Model")
 
     case ClearProperties =>
       println("ModelActor.clear")
