@@ -1,4 +1,6 @@
 import akka.actor.{Actor, Props}
+import com.typesafe.config._
+import scala.collection.JavaConverters._
 
 object Master {
   case class Stop()
@@ -11,8 +13,10 @@ class Master extends Actor {
   import ModelActor._
 
   override def preStart() = {
+    val conf = ConfigFactory.load()
+    val defaults = conf.getObject("default-properties").unwrapped().asScala.mapValues(_.toString).toMap
 
-    val modelActor = context.actorOf(ModelActor.props(), "MODEL")
+    val modelActor = context.actorOf(ModelActor.props(defaults), "MODEL")
 
     val guiActor1 = context.actorOf(GuiActor.props(modelActor), "GUI1")
     guiActor1 ! GuiActor.Show

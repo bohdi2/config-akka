@@ -2,8 +2,9 @@
 import akka.actor.ActorRef
 import java.awt.Color
 import scala.swing._
-import scala.swing.event.ButtonClicked
 import scala.swing.event.EditDone
+import swing.event.{TableRowsSelected, TableColumnsSelected, ButtonClicked}
+
 
 object Gui {
 
@@ -32,17 +33,6 @@ object Gui {
     def setValue(s: String) = valueLabel.text = s
   }
 
-/*
-  def createRowMap(model: ActorRef): Map[String, PropertyRow] = {
-    val names = List("A", "B", "C", "Dog")
-
-    val rows = for {
-      name <- names
-    } yield name -> new PropertyRow(model, name)
-
-    rows.toMap
-  }
-  */
 }
 
 class Gui(modelActor: ActorRef) extends MainFrame {
@@ -69,8 +59,24 @@ class Gui(modelActor: ActorRef) extends MainFrame {
     contents += stopButton
   }
 
+  val tmodel = Array(List("Mary", "Campione", "Snowboarding", 5, false).toArray,
+    List("Alison", "Huml", "Rowing", 5, false).toArray,
+    List("Kathy", "Walrath", "Knitting", 5, false).toArray,
+    List("Sharon", "Zakhour", "Speed reading", 5, false).toArray,
+    List("Philip", "Milne", "Pool", 5, true).toArray)
+
+  val table = new Table(tmodel, Array("First Name", "Last Name", "Sport", "# of Years", "Vegetarian")) {
+    preferredViewportSize = new Dimension(500, 70)
+  }
+  table.selection.intervalMode = Table.IntervalMode.Single
+  table.selection.elementMode = Table.ElementMode.Cell
+
+  listenTo(table.selection)
+  //contents += new ScrollPane(table)
+
   // Main panel
   val mainPanel = new BoxPanel(Orientation.Vertical) {
+    contents += new ScrollPane(table)
     contents += topPanel
     contents += bottomPanel
   }
@@ -91,6 +97,17 @@ class Gui(modelActor: ActorRef) extends MainFrame {
     case ButtonClicked(`stopButton`) =>
       //masterActor ! Stop
       System.exit(0)
+
+    case TableRowsSelected(t, range, b) =>
+      println(s"Rows selected, range: $range, flag: $b")
+      //println("rows t: " + t)
+
+    case TableColumnsSelected(t, range, b) =>
+      println(s"Columns selected, range: $range, flag: $b")
+      //println("rows x: " + x)
+
+
+    case x => println("Unknown: " + x.getClass())
   }
 
   def addRow(name: String, value: String) = {
@@ -100,7 +117,6 @@ class Gui(modelActor: ActorRef) extends MainFrame {
     //mainPanel.revalidate()
     pack()
   }
-
 
   def clear() = rows.foreach(_._2.clearValue())
 

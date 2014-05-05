@@ -16,10 +16,10 @@ object ModelActor {
   case class DeregisterGui(guiActor: ActorRef)
   case class RegisterGui(guiActor: ActorRef)
 
-  def props(): Props = Props(new ModelActor())
+  def props(defaults: Map[String, String]): Props = Props(new ModelActor(defaults))
 }
 
-class ModelActor() extends Actor {
+class ModelActor(defaults: Map[String, String]) extends Actor {
   import ModelActor._
   import GuiActor._
 
@@ -47,7 +47,7 @@ class ModelActor() extends Actor {
         key <- properties.stringPropertyNames().asScala
       } yield key -> properties.getProperty(key)
 
-      model = x.toMap
+      model = defaults ++ x.toMap
 
       views.map(_ ! DisplayProperties(model))
 
